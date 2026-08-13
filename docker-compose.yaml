@@ -1,0 +1,48 @@
+services:
+  web:
+    container_name: e_learning_web
+    build: .
+    working_dir: /app
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: >
+      sh -c "
+      until pg_isready -h db -p 5432; do sleep 1; done &&
+      alembic upgrade head &&
+      uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+
+      "
+    volumes:
+      - .:/app
+      - static_files:/app/staticfiles
+      - media_files:/app/media
+    ports:
+      - "8006:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    container_name: e_learning_db 
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  static_files:
+  media_files:
