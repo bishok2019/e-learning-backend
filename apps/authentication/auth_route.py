@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from apps.authentication.models import RefreshToken, User, UserType
+from apps.authentication.models import CustomUser, RefreshToken, UserType
 from apps.authentication.schemas import (
     LogoutRequest,
     UserLogin,
@@ -29,8 +29,10 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
     """Register a new user"""
     # Check if user already exists
     existing_user = (
-        db.query(User)
-        .filter((User.username == user.username) | (User.email == user.email))
+        db.query(CustomUser)
+        .filter(
+            (CustomUser.username == user.username) | (CustomUser.email == user.email)
+        )
         .first()
     )
     if existing_user:
@@ -47,13 +49,13 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
 
     # Create new user
     try:
-        db_user = User(
+        db_user = CustomUser(
             username=user.username,
             email=user.email,
             hashed_password=hash_password(user.password),
             is_active=True,
             is_superuser=False,
-            user_type=UserType.CUSTOMER,  # Set user type to CUSTOMER for registered users
+            user_type=UserType.STUDENT,  # Set user type to CUSTOMER for registered users
             # is_verified=False,
         )
         db.add(db_user)
@@ -89,7 +91,11 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     """Login user and return JWT tokens"""
     # Find user
-    user = db.query(User).filter(User.username == user_credentials.username).first()
+    user = (
+        db.query(CustomUser)
+        .filter(CustomUser.username == user_credentials.username)
+        .first()
+    )
 
     if not user or not verify_password(user_credentials.password, user.hashed_password):
         StandardResponse.error_response(
@@ -145,7 +151,7 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
 def logout(
     schema: LogoutRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: CustomUser = Depends(get_current_user),
 ):
     token = (
         db.query(RefreshToken)
@@ -177,7 +183,7 @@ def refresh_token(current_refresh_token: str, db: Session = Depends(get_db)):
             detail="Invalid refresh token",
         )
 
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(CustomUser).filter(CustomUser.id == user_id).first()
     if not user:
         StandardResponse.error_response(
             message="User not found",

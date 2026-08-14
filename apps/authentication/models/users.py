@@ -42,10 +42,6 @@ class CustomUser(BaseModel):
         "CustomPermission", secondary="user_permissions", back_populates="users"
     )  # reverse relationship to UserPermission
 
-    customer_profile = relationship(
-        "Customer", uselist=False, back_populates="user"
-    )  # field name should be same as in Customer model's relationship field
-
 
 # Association tables for many-to-many relationships
 user_roles = Table(

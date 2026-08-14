@@ -1,7 +1,7 @@
 DB_USER=admin
 DB_PASSWORD=admin123
 # DB_HOST=localhost no need since backend connect via url
-DB_PORT=5433
+DB_EXPOSE_PORT=5435
 DB_NAME=e_learning_db
 
 DATABASE_URL=postgresql://admin:admin123@db:5432/e_learning_db
@@ -10,3 +10,4 @@ EMAIL_PASS=tdnbtqdkodjtkcch
 EMAIL_USER=bishokpaudel57@gmail.com
 DEFAULT_FROM_EMAIL=bishokpaudel57@gmail.com
 SECRET_KEY=49f450cf4c5780aa6350c289c8eb9f38490410408afde0e54bc6bdacac753416
+WEB_EXPOSE_PORT=8002

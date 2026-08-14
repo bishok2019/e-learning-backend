@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from apps.database import get_db
 
-from .models import User
+from .models import CustomUser
 
 load_dotenv()
 
@@ -81,11 +81,11 @@ def verify_token(token: str) -> int:
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
-) -> User:
+) -> CustomUser:
     """Get current authenticated user"""
     token = credentials.credentials
     user_id = verify_token(token)
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(CustomUser).filter(CustomUser.id == user_id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -95,7 +95,9 @@ def get_current_user(
     return user
 
 
-def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+def get_current_active_user(
+    current_user: CustomUser = Depends(get_current_user),
+) -> CustomUser:
     """Get current active user"""
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
@@ -106,8 +108,8 @@ def check_permissions(
     required_permissions: list[str],
 ):  # this method expects a list of permission code names like ["can_view_stock", "can_edit_stock"]
     def permission_dependency(
-        current_user: User = Depends(get_current_active_user),
-    ) -> User:
+        current_user: CustomUser = Depends(get_current_active_user),
+    ) -> CustomUser:
         if current_user.is_superuser:
             return current_user
         print("Not a superuser, checking permissions...")

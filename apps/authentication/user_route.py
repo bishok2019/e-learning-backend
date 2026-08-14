@@ -5,7 +5,7 @@ from apps.database import get_db
 from base.pagination import get_pagination_params, paginate
 from base.route import StandardResponse
 
-from .models import User
+from .models import CustomUser
 from .schemas import UserCreate, UserList, UserLogin, UserRetrieve, UserUpdate
 from .utils import hash_password, verify_password
 
@@ -19,8 +19,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     """Create a new user"""
     # Check if user exists already
     existing_user = (
-        db.query(User)
-        .filter((User.username == user.username) | (User.email == user.email))
+        db.query(CustomUser)
+        .filter(
+            (CustomUser.username == user.username) | (CustomUser.email == user.email)
+        )
         .first()
     )
     if existing_user:
@@ -30,7 +32,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         )
 
     # Create new user
-    db_user = User(
+    db_user = CustomUser(
         username=user.username,
         email=user.email,
         hashed_password=hash_password(user.password),
@@ -57,7 +59,7 @@ def get_users(
 ):
     """Get all users with pagination"""
     result = paginate(
-        query=db.query(User),
+        query=db.query(CustomUser),
         pagination=pagination,
         schema=UserList,
     )
@@ -71,7 +73,7 @@ def get_users(
 @router.get("/retrieve/{user_id}", response_model=StandardResponse)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     """Get a specific user by ID"""
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(CustomUser).filter(CustomUser.id == user_id).first()
     if not user:
         StandardResponse.error_response(
             message="User not found.",
@@ -92,9 +94,10 @@ def update_user(
 ):
     """Update a specific user by ID"""
     existing_user = (
-        db.query(User)
+        db.query(CustomUser)
         .filter(
-            (User.username == user_update.username) | (User.email == user_update.email)
+            (CustomUser.username == user_update.username)
+            | (CustomUser.email == user_update.email)
         )
         .first()
     )
@@ -103,7 +106,7 @@ def update_user(
             message="Username or email already registered.",
             status_code=status.HTTP_400_BAD_REQUEST,
         )
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(CustomUser).filter(CustomUser.id == user_id).first()
     if not user:
         StandardResponse.error_response(
             message="User not found.",

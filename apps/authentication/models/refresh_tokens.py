@@ -1,4 +1,3 @@
-from apps.database import Base
 from sqlalchemy import (
     Boolean,
     Column,
@@ -11,6 +10,8 @@ from sqlalchemy import (
     Text,
     text,
 )
+
+from apps.database import Base
 
 
 class RefreshToken(Base):

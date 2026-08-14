@@ -16,7 +16,9 @@ class CustomRole(BaseModel):
     permissions = relationship(
         "CustomPermission", secondary=role_permissions, back_populates="roles"
     )
-    users = relationship("User", secondary="user_roles", back_populates="user_roles")
+    users = relationship(
+        "CustomUser", secondary="user_roles", back_populates="user_roles"
+    )
 
 
 class PermissionCategory(BaseModel):
@@ -41,5 +43,5 @@ class CustomPermission(BaseModel):
         "CustomRole", secondary=role_permissions, back_populates="permissions"
     )
     users = relationship(
-        "User", secondary="user_permissions", back_populates="user_permissions"
+        "CustomUser", secondary="user_permissions", back_populates="user_permissions"
     )
