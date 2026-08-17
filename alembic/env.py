@@ -4,15 +4,20 @@ from decouple import config as env_config
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from apps.api_logs.models import APILog, ErrorLog
-from apps.authentication.models import (
-    CustomPermission,
-    CustomRole,
-    CustomUser,
-    RefreshToken,
-    UserType,
-)
+
+# from apps.api_logs.models import APILog, ErrorLog
+# from apps.authentication.models import (
+#     CustomPermission,
+#     CustomRole,
+#     CustomUser,
+#     RefreshToken,
+#     UserType,
+# )
+# from apps.course.models import Course, CourseStatus, Lesson
+from apps import model_registry
 from apps.database import Base
+
+# from apps.enrollment.models import Enrollment, Progress
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

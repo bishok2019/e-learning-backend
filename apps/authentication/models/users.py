@@ -41,6 +41,10 @@ class CustomUser(BaseModel):
     user_permissions = relationship(
         "CustomPermission", secondary="user_permissions", back_populates="users"
     )  # reverse relationship to UserPermission
+    courses = relationship("Course", back_populates="instructor")
+    enrollments = relationship(
+        "Enrollment", back_populates="student", cascade="all, delete-orphan"
+    )
 
 
 # Association tables for many-to-many relationships
