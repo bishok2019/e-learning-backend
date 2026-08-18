@@ -73,6 +73,10 @@ up:
 down:
 	$(DC) down
 
+.PHONY: remove
+remove:
+	$(DC) down -v
+
 
 .PHONY: restart
 restart:

@@ -353,7 +353,7 @@ wheels = [
 ]
 
 [[package]]
-name = "fuel-stack-backend"
+name = "e-learning-backend"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

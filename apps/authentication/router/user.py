@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from apps.database import get_db
 from base.pagination import get_pagination_params, paginate
 from base.route import StandardResponse
+from base.utils.query_utils import generic_list_handler
 
-from .models import CustomUser
-from .schemas import UserCreate, UserList, UserLogin, UserRetrieve, UserUpdate
-from .utils import hash_password, verify_password
+from ..models import CustomUser
+from ..schemas import UserCreate, UserList, UserRetrieve, UserUpdate
+from ..utils import hash_password
 
 router = APIRouter()
 
@@ -50,23 +51,32 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/list", response_model=StandardResponse)
-def get_users(
-    # page: int = 1,  # we are passing page and page_size in paginate() directly
-    # page_size: int = 1,
+@router.get("/list")
+def list_users(
+    search: str = "",
+    user_id: int = None,
+    is_active: bool = None,
+    user_type: str = None,
     db: Session = Depends(get_db),
     pagination=Depends(get_pagination_params),
+    # __: User = Depends(get_current_user),
 ):
-    """Get all users with pagination"""
-    result = paginate(
-        query=db.query(CustomUser),
-        pagination=pagination,
+    """List all Customer records with pagination, search, and filters"""
+    return generic_list_handler(
+        model=CustomUser,
         schema=UserList,
-    )
-    return StandardResponse.success_response(
-        data=result.data,
-        message="Users fetched successfully.",
-        meta=result.meta,
+        search_fields=["username", "email"],
+        filter_fields=["user_id", "is_active", "user_type"],
+        db=db,
+        pagination=pagination,
+        search=search,
+        user_id=user_id,
+        is_active=is_active,
+        user_type=user_type,
+        # eager_loads=[Customer.user],
+        related_mappings={
+            "email": "user.email",
+        },
     )
 
 
