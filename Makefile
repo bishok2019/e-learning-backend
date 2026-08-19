@@ -19,6 +19,10 @@ help:
 	@echo "  make down                            Stop containers"
 	@echo "  make restart                         Restart containers"
 	@echo "  make logs                            Follow container logs"
+	@echo "Management Command:"
+	@echo "  make permission                      Create permissions and category"
+	@echo "  make flush                           Flush all data"
+	@echo "  make superuser                       Create superuser"
 	@echo ""
 
 # ── apps ───────────────────────────────────────────────────────────────
@@ -82,7 +86,20 @@ remove:
 restart:
 	$(DC) restart
 
+# ───────────────── Management command-------------------------
+.PHONY: permission
+permission:
+	$(DC) exec web python manage.py seed_permissions
 
+
+.PHONY: flush
+flush:
+	$(DC) exec web python manage.py flush_data
+
+
+.PHONY: superuser
+superuser:
+	$(DC) exec web python manage.py createsuperuser
 
 # ── Positional Arguments ──────────────────────────────────────────────────────
 
