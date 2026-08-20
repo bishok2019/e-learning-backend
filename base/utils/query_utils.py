@@ -96,8 +96,8 @@ def generic_list_handler(
     *,
     model: Type,
     schema: Type,
-    search_fields: List[str],
-    filter_fields: List[str],
+    search_fields: Optional[List[str]] = None,
+    filter_fields: Optional[List[str]] = None,
     db: Session,
     pagination,
     search: Optional[str] = "",
@@ -125,7 +125,7 @@ def generic_list_handler(
     query = db.query(model)
     query = apply_search(query, model, search, search_fields)
     query = apply_filters(
-        query, model, {field: filters.get(field) for field in filter_fields}
+        query, model, {field: filters.get(field) for field in (filter_fields or [])}
     )
     query = apply_eager_loads(query, eager_loads or [])
 

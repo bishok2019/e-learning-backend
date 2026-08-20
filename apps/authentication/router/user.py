@@ -7,7 +7,7 @@ from base.route import StandardResponse
 from base.utils.query_utils import generic_list_handler
 
 from ..models import CustomUser
-from ..schemas import UserCreate, UserList, UserRetrieve, UserUpdate
+from ..schema import UserCreate, UserList, UserRetrieve, UserUpdate
 from ..utils import hash_password
 
 router = APIRouter()

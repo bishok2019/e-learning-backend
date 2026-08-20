@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from apps.authentication.models import CustomUser, RefreshToken, UserType
-from apps.authentication.schemas import (
+from apps.authentication.schema import (
     LogoutRequest,
     UserLogin,
     UserRegister,
