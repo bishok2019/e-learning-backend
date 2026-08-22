@@ -7,6 +7,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy import Enum as SQLEnum  # Purpose: Store enum values in DB
 from sqlalchemy.orm import relationship
@@ -61,4 +62,7 @@ class Lesson(BaseModel):
     course = relationship("Course", back_populates="lessons")
     completions = relationship(
         "Progress", back_populates="lesson", cascade="all, delete-orphan"
+    )
+    __table_args__ = (
+        UniqueConstraint("course_id", "title", name="uq_course_lesson_title"),
     )

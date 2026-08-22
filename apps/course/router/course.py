@@ -8,8 +8,8 @@ from base.pagination import get_pagination_params
 from base.route import StandardResponse
 from base.utils.query_utils import generic_list_handler
 
-from .. import schemas
-from ..models import Course
+from .. import schema as schemas
+from ..models import Course, Lesson
 
 router = APIRouter()
 
@@ -43,10 +43,7 @@ def get_courses(
 @router.post(
     "/create", response_model=StandardResponse, status_code=status.HTTP_201_CREATED
 )
-def create_course(
-    course: schemas.CourseCreateSchema,
-    db: Session = Depends(get_db),
-):
+def create_course(course: schemas.CourseCreateSchema, db: Session = Depends(get_db)):
     """Create a new course"""
     existing_course = db.query(Course).filter(Course.title == course.title).first()
     if existing_course:
@@ -69,20 +66,56 @@ def create_course(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    db_course = Course(
-        title=course.title,
-        description=course.description,
-        status=course.status,
-        is_active=course.is_active,
-        instructor_id=course.instructor_id,
-    )
-    db.add(db_course)
-    db.commit()
-    db.refresh(db_course)
+    if course.lessons:
+        incoming_titles = [lesson_data.title for lesson_data in course.lessons]
+
+        # Check for duplicates within the submitted list itself
+        # (No DB check needed here — this course doesn't exist yet,
+        # so it can't already have any lessons to conflict with.)
+        if len(incoming_titles) != len(set(incoming_titles)):
+            return StandardResponse.error_response(
+                message="Duplicate lesson titles found in the submitted lessons.",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
+    try:
+        # 1. Create course, flush to get its id without committing yet
+        db_course = Course(
+            title=course.title,
+            description=course.description,
+            status=course.status,
+            is_active=course.is_active,
+            instructor_id=course.instructor_id,
+        )
+        db.add(db_course)
+        db.flush()  # assigns db_course.id, still inside the transaction
+
+        # 2. Create lessons using that course id
+        for lesson_data in course.lessons or []:
+            lesson = Lesson(
+                title=lesson_data.title,
+                content=lesson_data.content,
+                order=lesson_data.order,
+                course_id=db_course.id,
+            )
+            db.add(lesson)
+
+        # 3. Commit everything together
+        db.commit()
+        db.refresh(db_course)
+
+    except Exception as e:
+        db.rollback()
+        return StandardResponse.error_response(
+            message="Failed to create course with lessons.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            error=str(e),
+        )
 
     return StandardResponse.success_response(
         data=schemas.CourseRetrieveSchema.model_validate(db_course),
         message="Course created successfully.",
+        status_code=status.HTTP_201_CREATED,
     )
 
 
@@ -99,4 +132,48 @@ def retrieve_course(
     return StandardResponse.success_response(
         data=schemas.CourseRetrieveSchema.model_validate(course),
         message="Course retrieved successfully.",
+    )
+
+
+@router.patch("/update/{course_id}", response_model=StandardResponse)
+def update_course(
+    course_id: int,
+    course_update: schemas.CourseUpdateSchema,
+    db: Session = Depends(get_db),
+):
+    """Update a specific user by ID"""
+    existing_course = (
+        db.query(Course).filter((Course.title == course_update.title)).first()
+    )
+    if existing_course:
+        StandardResponse.error_response(
+            message="Course with this title already existed.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        StandardResponse.error_response(
+            message="Course not found.",
+            error="Course not found.",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Update fields if provided
+    if course_update.title is not None:
+        course.title = course_update.title
+    if course_update.description is not None:
+        course.description = course_update.description
+    if course_update.status is not None:
+        course.status = course_update.status
+    if course_update.is_active is not None:
+        course.is_active = course_update.is_active
+    if course_update.instructor_id is not None:
+        course.instructor_id = course_update.instructor_id
+
+    db.commit()
+    db.refresh(course)
+
+    return StandardResponse.success_response(
+        data=schemas.CourseRetrieveSchema.model_validate(course),
+        message="User updated successfully.",
     )

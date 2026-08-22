@@ -51,8 +51,8 @@ revision:
 	fi
 	$(DC) exec web alembic revision --autogenerate -m "$(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))"
 
-.PHONY: migrate
-migrate:
+.PHONY: upgrade
+upgrade:
 	$(DC) exec web alembic upgrade head
 
 

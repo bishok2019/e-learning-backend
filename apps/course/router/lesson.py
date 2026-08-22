@@ -8,7 +8,7 @@ from base.pagination import get_pagination_params
 from base.route import StandardResponse
 from base.utils.query_utils import generic_list_handler
 
-from .. import schemas
+from .. import schema as schemas
 from ..models import Lesson
 
 router = APIRouter()

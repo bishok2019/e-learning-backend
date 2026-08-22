@@ -23,13 +23,14 @@ class StandardResponse(BaseModel):
         cls,
         data: Any = None,
         message: str = "Operation successful",
+        status_code: int = status.HTTP_200_OK,
         meta: Optional[Dict[str, Any]] = None,
     ) -> "StandardResponse":
         base_meta = {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         return cls(
             success=True,
             data=data,
-            status_code=200,
+            status_code=status_code,
             message=message,
             meta={**base_meta, **(meta or {})},
         )

@@ -11,6 +11,7 @@ from apps.authentication.router import (
     user_router,
 )
 from apps.course.router import course_router, lesson_router
+from apps.enrollment.route import router as enrollment_router
 from base.exceptions import (
     http_exception_handler,
     unhandled_exception_handler,
@@ -47,6 +48,7 @@ v1_router.include_router(permission_router, prefix="/permission", tags=["Permiss
 v1_router.include_router(user_router, prefix="/users", tags=["Users"])
 v1_router.include_router(course_router, prefix="/courses", tags=["Courses"])
 v1_router.include_router(lesson_router, prefix="/lesson", tags=["Lesson"])
+v1_router.include_router(enrollment_router, prefix="/enrollment", tags=["Enrollment"])
 
 
 app.include_router(v1_router)

@@ -39,6 +39,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         hashed_password=hash_password(user.password),
         is_active=True,
         is_superuser=False,
+        user_type=user.user_type,
         # is_verified=False,
     )
     db.add(db_user)
@@ -73,10 +74,6 @@ def list_users(
         user_id=user_id,
         is_active=is_active,
         user_type=user_type,
-        # eager_loads=[Customer.user],
-        related_mappings={
-            "email": "user.email",
-        },
     )
 
 
@@ -135,6 +132,8 @@ def update_user(
         user.is_active = user_update.is_active
     if user_update.is_superuser is not None:
         user.is_superuser = user_update.is_superuser
+    if user_update.user_type is not None:
+        user.user_type = user_update.user_type
 
     db.commit()
     db.refresh(user)
